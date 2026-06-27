@@ -80,7 +80,7 @@ class PlatformSprite(Sprite):
         self.coordinates = Coords(x, y, x + width, y + height)
 
     def move(self):
-        if time.time() - self.last_time > 1:
+        if time.time() - self.last_time > 0.2:
             self.last_time = time.time()
             self.current_image = 2 if self.current_image == 1 else 1
         image = self.photo_image1 if self.current_image == 1 else self.photo_image2
@@ -294,20 +294,23 @@ class Game:
 
 g = Game()
 
-p1 =  PhotoImage(file='icons/platform1.gif')
-p2 =  PhotoImage(file='icons/platform2.gif')
-p3 =  PhotoImage(file='icons/platform3.gif')
+p1a =  PhotoImage(file='icons/platform1a.gif')
+p1b =  PhotoImage(file='icons/platform1b.gif')
+p2a =  PhotoImage(file='icons/platform2a.gif')
+p2b =  PhotoImage(file='icons/platform2b.gif')
+p3a =  PhotoImage(file='icons/platform3a.gif')
+p3b =  PhotoImage(file='icons/platform3b.gif')
 
-platform10 = PlatformSprite(g, p2, p1, 45, 60, 60, 10)
-platform9 = PlatformSprite(g, p2, p1,  100, 120, 60, 10)                           
-platform8 = PlatformSprite(g, p3, p2,  200, 160, 10, 10)
-platform7 = PlatformSprite(g, p2, p1, 260, 200, 60, 10)
-platform6 = PlatformSprite(g, p2, p1, 170, 250, 60, 10)        
-platform5 = PlatformSprite(g, p2, p1, 50, 300, 60, 10)   
-platform4 = PlatformSprite(g, p1, p1, 175, 350, 100, 10)  
-platform3 = PlatformSprite(g, p2, p1, 300, 400, 60, 10)                               
-platform2 = PlatformSprite(g, p1, p1, 150, 440, 100, 10)                                                
-platform1 = PlatformSprite(g, p2, p1, 0, 480, 100, 10)                                                                       
+platform10 = PlatformSprite(g, p2a, p2b, 45, 60, 60, 10)
+platform9 = PlatformSprite(g, p2a, p2b,  100, 120, 60, 10)                           
+platform8 = PlatformSprite(g, p3a, p3b,  200, 160, 32, 10)
+platform7 = PlatformSprite(g, p2a, p2b, 260, 200, 60, 10)
+platform6 = PlatformSprite(g, p2a, p2b, 170, 250, 60, 10)        
+platform5 = PlatformSprite(g, p2a, p2b, 50, 300, 60, 10)   
+platform4 = PlatformSprite(g, p1a, p1b, 175, 350, 100, 10)  
+platform3 = PlatformSprite(g, p2a, p2b, 300, 400, 60, 10)                               
+platform2 = PlatformSprite(g, p1a, p1b, 150, 440, 100, 10)                                                
+platform1 = PlatformSprite(g, p2a, p2b, 30, 480, 60, 10)                                                                       
 g.sprites.append(platform1)
 g.sprites.append(platform2)
 g.sprites.append(platform3)
