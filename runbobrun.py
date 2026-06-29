@@ -102,10 +102,10 @@ class StickFigureSprite(Sprite):
             PhotoImage(file='icons/figure-L2.gif'),
             PhotoImage(file='icons/figure-L3.gif')
         ]
-        self.figure_wet = PhotoImage(file='icons/figure-wet.gif')
-        self.image = game.canvas.create_image(200, 470,
+        self.figure_fail= PhotoImage(file='icons/figure-fail.gif')
+        self.image = game.canvas.create_image(0, 470,
                 image=self.images_left[0], anchor='nw')
-        self.x = -2
+        self.x = 0
         self.y = 0
         self.current_image = 0
         self.current_image_add = 1
@@ -341,8 +341,9 @@ class Game:
                         image=sprite.image_wet)
 
             if isinstance(sprite, StickFigureSprite):
-                self.canvas.itemconfig(sprite.image,
-                        image=sprite.figure_wet)
+                if (self.end_code != self.COMPLETED):
+                    self.canvas.itemconfig(sprite.image,
+                            image=sprite.figure_fail)
 
             self.tk.update_idletasks()
             self.tk.update()                                
@@ -371,6 +372,7 @@ class Game:
             else:
                 self.gameOver()
 
+                #self.newGame(  True)
                 self.newGame(   (self.end_code == self.COMPLETED))
                 break
             self.tk.update_idletasks()
@@ -387,7 +389,7 @@ class Game:
         if (incrementLevel):
             self.level = self.level + 1
 
-        self.tk.title('Run Bob Run Level ' + str(self.level))
+        self.tk.title('Binman Bob Level ' + str(self.level))
 
         self.bg = PhotoImage(file='icons/background.gif')
         w = self.bg.width()
@@ -410,16 +412,16 @@ class Game:
 
         MAX_RIGHT = 12
         #, game, photo_image1, photo_image2, x, y, width, height
-        platform10 = PlatformSprite(game=self, photo_image1=p2a, photo_image2=p2b, x = 45, y=60, width=60, height=10)
-        platform9 = PlatformSprite(self, p2a, p2b,  100, 120, 60, 10)                           
+        platform10 = PlatformSprite(game=self, photo_image1=p3a, photo_image2=p3b, x = 45, y=60, width=32, height=10)
+        platform9 = PlatformSprite(self, p2a, p2b,  100, 120, 66, 10)                           
         platform8 = PlatformSprite(self, p3a, p3b,  200 , 160, 32, 10)
-        platform7 = PlatformSprite(self, p2a, p2b, 260 , 200, 60, 10)
-        platform6 = PlatformSprite(self, p2a, p2b, 170 , 250, 60, 10)        
-        platform5 = PlatformSprite(self, p1a, p1b, 50 , 300, 100, 10)   
-        platform4 = PlatformSprite(self, p1a, p1b, 175 , 350, 100, 10)  
-        platform3 = PlatformSprite(self, p2a, p2b, 300 , 400, 60, 10)                               
-        platform2 = PlatformSprite(self, p1a, p1b, 150 , 440, 100, 10)                                                
-        platform1 = PlatformSprite(self, p2a, p2b, 30 , 480, 60, 10)                                                                       
+        platform7 = PlatformSprite(self, p2a, p2b, 260 , 200, 66, 10)
+        platform6 = PlatformSprite(self, p3a, p3b, 170 , 250, 32, 10)        
+        platform5 = PlatformSprite(self, p1a, p1b, 150 , 300, 100, 10)   
+        platform4 = PlatformSprite(self, p3a, p3b, 280 , 350, 32, 10)  
+        platform3 = PlatformSprite(self, p2a, p2b, 340 , 400, 66, 10)                               
+        platform2 = PlatformSprite(self, p1a, p1b, 250 , 440, 100, 10)                                                
+        platform1 = PlatformSprite(self, p2a, p2b, 180 , 480, 66, 10)                                                                       
         self.sprites.append(platform1)
         self.sprites.append(platform2)
         self.sprites.append(platform3)
@@ -431,9 +433,6 @@ class Game:
         self.sprites.append(platform9)
         self.sprites.append(platform10)
 
-        toilet: ToiletSprite = ToiletSprite(self, PhotoImage(file='icons/toilet-empty.gif'), PhotoImage(file='icons/toilet-fill.gif'), 8, 30,  80, 27, 30)
-        self.sprites.append(toilet)
-
         if (self.level > 1):
             monster: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 20,    200, 30, 320, 30, 35)
             self.sprites.append(monster)
@@ -443,12 +442,23 @@ class Game:
             self.sprites.append(monster2)        
 
         if (self.level > 3):
-            monster3: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 40,  200, 180, 300, 30, 35)
+            monster3: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 80,  200, 180, 300, 30, 35)
             self.sprites.append(monster3)     
 
         if (self.level > 4):
-            monster4: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 60, 240, 120, 320, 30, 35)
-            self.sprites.append(monster4)                           
+            monster4: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 160, 240, 120, 320, 30, 35)
+            self.sprites.append(monster4)  
+
+        if (self.level > 5):
+            monster5: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 260, 30, 160, 300, 30, 35)
+            self.sprites.append(monster5)              
+
+        if (self.level < 4):
+            toilet1: ToiletSprite = ToiletSprite(self, PhotoImage(file='icons/bin-open.gif'), PhotoImage(file='icons/bin-closed.gif'), 0, 20,  200, 27, 30)
+            self.sprites.append(toilet1) 
+        else:
+            toilet: ToiletSprite = ToiletSprite(self, PhotoImage(file='icons/bin-open.gif'), PhotoImage(file='icons/bin-closed.gif'), 300, 0,  60, 27, 30)
+            self.sprites.append(toilet)                                           
 
         sf = StickFigureSprite(self)
         self.sprites.append(sf)
