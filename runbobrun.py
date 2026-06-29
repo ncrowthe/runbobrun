@@ -244,13 +244,15 @@ class StickFigureSprite(Sprite):
         self.game.canvas.move(self.image, self.x, self.y)
 
 class ToiletSprite(Sprite):
-    def __init__(self, game, photo_image, image_wet, x, y, y_movement, width, height):
+    def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
         Sprite.__init__(self, game)
-        self.photo_image = photo_image
-        self.image_wet = image_wet
+        self.last_time = time.time()
+        self.current_image = 1        
+        self.image_open = image_open
+        self.image_closed = image_closed
         self.y_movement = y_movement
         self.image = game.canvas.create_image(x, y, 
-                image=self.photo_image, anchor='nw')
+                image=self.image_open, anchor='nw')
         self.coordinates = Coords(x, y, x + (width / 2), y + height)
         self.y_delta = 1
         self.y_count = 0
@@ -265,6 +267,13 @@ class ToiletSprite(Sprite):
         self.game.canvas.move(self.image, 0, self.y_delta)
         self.coordinates.y1 += self.y_delta
         self.coordinates.y2 += self.y_delta
+
+        # Alternate pics
+        if time.time() - self.last_time > 0.2:
+            self.last_time = time.time()
+            self.current_image = 2 if self.current_image == 1 else 1
+        image = self.image_open if self.current_image == 1 else self.image_closed
+        self.game.canvas.itemconfig(self.image, image=image)        
 
 class MonsterSprite(Sprite):
     def __init__(self, game, photo_image, x, y, x_movement, y_movement, width, height):
@@ -338,7 +347,7 @@ class Game:
         for sprite in self.sprites:
             if isinstance(sprite, ToiletSprite):
                 self.canvas.itemconfig(sprite.image,
-                        image=sprite.image_wet)
+                        image=sprite.image_closed)
 
             if isinstance(sprite, StickFigureSprite):
                 if (self.end_code != self.COMPLETED):
@@ -418,8 +427,8 @@ class Game:
         platform7 = PlatformSprite(self, p2a, p2b, 260 , 200, 66, 10)
         platform6 = PlatformSprite(self, p3a, p3b, 170 , 250, 32, 10)        
         platform5 = PlatformSprite(self, p1a, p1b, 150 , 300, 100, 10)   
-        platform4 = PlatformSprite(self, p3a, p3b, 280 , 350, 32, 10)  
-        platform3 = PlatformSprite(self, p2a, p2b, 340 , 400, 66, 10)                               
+        platform4 = PlatformSprite(self, p3a, p3b, 300 , 350, 32, 10)  
+        platform3 = PlatformSprite(self, p2a, p2b, 380 , 400, 66, 10)                               
         platform2 = PlatformSprite(self, p1a, p1b, 250 , 440, 100, 10)                                                
         platform1 = PlatformSprite(self, p2a, p2b, 180 , 480, 66, 10)                                                                       
         self.sprites.append(platform1)
@@ -453,11 +462,15 @@ class Game:
             monster5: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 260, 30, 160, 300, 30, 35)
             self.sprites.append(monster5)              
 
+
+        img_open   = PhotoImage(file='icons/toilet-open.gif')
+        img_closed = PhotoImage(file='icons/toilet-closed.gif')
+
         if (self.level < 4):
-            toilet1: ToiletSprite = ToiletSprite(self, PhotoImage(file='icons/bin-open.gif'), PhotoImage(file='icons/bin-closed.gif'), 0, 20,  200, 27, 30)
-            self.sprites.append(toilet1) 
+            toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=0, y=20,  y_movement=200, width=27, height=30)
+            self.sprites.append(toilet) 
         else:
-            toilet: ToiletSprite = ToiletSprite(self, PhotoImage(file='icons/bin-open.gif'), PhotoImage(file='icons/bin-closed.gif'), 300, 0,  60, 27, 30)
+            toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=60, width=27, height=30)
             self.sprites.append(toilet)                                           
 
         sf = StickFigureSprite(self)
@@ -465,4 +478,4 @@ class Game:
         self.mainloop()
 
 g = Game()
-g.newGame(True)        
+g.newGame(False)        
