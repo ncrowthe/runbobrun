@@ -57,6 +57,10 @@ def collided_bottom(y, co1, co2):
     return False
 
 class Sprite:
+
+    SPRITE_HEIGHT = 30
+    SPRITE_WIDTH = 27
+
     def __init__(self, game):
         self.game = game
         self.endgame = False
@@ -157,8 +161,8 @@ class StickFigureSprite(Sprite):
         xy = self.game.canvas.coords(self.image)
         self.coordinates.x1 = xy[0]
         self.coordinates.y1 = xy[1]
-        self.coordinates.x2 = xy[0] + 27
-        self.coordinates.y2 = xy[1] + 30
+        self.coordinates.x2 = xy[0] + self.SPRITE_WIDTH
+        self.coordinates.y2 = xy[1] + self.SPRITE_HEIGHT
         return self.coordinates
 
     def move(self):
@@ -256,7 +260,7 @@ class ToiletSprite(Sprite):
         self.coordinates = Coords(x, y, x + (width / 2), y + height)
         self.y_delta = 1
         self.y_count = 0
-        self.endgame = True        
+        self.endgame = False        
 
     def move(self):
         if self.y_count >= self.y_movement:
@@ -467,10 +471,10 @@ class Game:
         img_closed = PhotoImage(file='icons/toilet-closed.gif')
 
         if (self.level < 4):
-            toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=0, y=20,  y_movement=200, width=27, height=30)
+            toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=0, y=20,  y_movement=200, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
             self.sprites.append(toilet) 
         else:
-            toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=60, width=27, height=30)
+            toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=60, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
             self.sprites.append(toilet)                                           
 
         sf = StickFigureSprite(self)
