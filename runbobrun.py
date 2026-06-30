@@ -71,7 +71,7 @@ class Sprite:
         return self.coordinates
 
 class PlatformSprite(Sprite):
-    def __init__(self, game, photo_image1, photo_image2, x, y, width, height):
+    def __init__(self, game, photo_image1, photo_image2, x, y, width, height, y_movement=0):
         Sprite.__init__(self, game)
 
         self.game = game
@@ -80,10 +80,14 @@ class PlatformSprite(Sprite):
         self.x = x
         self.y = y
         self.photo_image1 = photo_image1
-        self.photo_image2 = photo_image2        
+        self.photo_image2 = photo_image2
         self.image = game.canvas.create_image(x, y,
                 image=photo_image1, anchor='nw')
         self.coordinates = Coords(x, y, x + width, y + height)
+
+        self.y_movement = y_movement
+        self.y_delta = 1
+        self.y_count = 0
 
     def move(self):
         if time.time() - self.last_time > 0.2:
@@ -91,6 +95,16 @@ class PlatformSprite(Sprite):
             self.current_image = 2 if self.current_image == 1 else 1
         image = self.photo_image1 if self.current_image == 1 else self.photo_image2
         self.game.canvas.itemconfig(self.image, image=image)
+
+        if self.y_movement:
+            if self.y_count >= self.y_movement:
+                self.y_delta = -1
+            elif self.y_count <= 0:
+                self.y_delta = 1
+            self.y_count += self.y_delta
+            self.game.canvas.move(self.image, 0, self.y_delta)
+            self.coordinates.y1 += self.y_delta
+            self.coordinates.y2 += self.y_delta
 
 
 class StickFigureSprite(Sprite):
@@ -223,6 +237,8 @@ class StickFigureSprite(Sprite):
                     and co.y2 < self.game.canvas_height \
                     and collided_bottom(1, co, sprite_co):
                 falling = False
+                if sprite.y_movement and sprite.y_delta < 0:
+                    self.game.canvas.move(self.image, 0, sprite.y_delta)
             if left and self.x < 0 and collided_left(co, sprite_co):
                 self.x = 0
                 left = False
@@ -277,7 +293,39 @@ class ToiletSprite(Sprite):
             self.last_time = time.time()
             self.current_image = 2 if self.current_image == 1 else 1
         image = self.image_open if self.current_image == 1 else self.image_closed
-        self.game.canvas.itemconfig(self.image, image=image)        
+        self.game.canvas.itemconfig(self.image, image=image)            
+
+class BinSprite(Sprite):
+    def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
+        Sprite.__init__(self, game)
+        self.last_time = time.time()
+        self.current_image = 1        
+        self.image_open = image_open
+        self.image_closed = image_closed
+        self.y_movement = y_movement
+        self.image = game.canvas.create_image(x, y, 
+                image=self.image_open, anchor='nw')
+        self.coordinates = Coords(x, y, x + (width / 2), y + height)
+        self.y_delta = 1
+        self.y_count = 0
+        self.endgame = True        
+
+    def move(self):
+        if self.y_count >= self.y_movement:
+            self.y_delta = -1
+        elif self.y_count <= 0:
+            self.y_delta = 1
+        self.y_count += self.y_delta
+        self.game.canvas.move(self.image, 0, self.y_delta)
+        self.coordinates.y1 += self.y_delta
+        self.coordinates.y2 += self.y_delta
+
+        # Alternate pics
+        if time.time() - self.last_time > 0.2:
+            self.last_time = time.time()
+            self.current_image = 2 if self.current_image == 1 else 1
+        image = self.image_open if self.current_image == 1 else self.image_closed
+        self.game.canvas.itemconfig(self.image, image=image)           
 
 class MonsterSprite(Sprite):
     def __init__(self, game, photo_image, x, y, x_movement, y_movement, width, height):
@@ -362,16 +410,19 @@ class Game:
             self.tk.update()                                
 
         if (self.end_code == self.COMPLETED):
+            self.canvas.create_rectangle(150, 350, 350, 410, fill='black', outline='green')               
             self.canvas.create_text(250, 380, text="Well Done!",
-                    font=('Helvetica', 30), fill='blue')
+                    font=('Helvetica', 30), fill='green')
 
         if (self.end_code == self.EATEN):
-            self.canvas.create_text(250, 380, text="You've been eaten!",
+            self.canvas.create_rectangle(170, 360, 330, 400, fill='black', outline='red')            
+            self.canvas.create_text(250, 380, text="Eaten!",
                     font=('Helvetica', 30), fill='red')
 
         if (self.end_code == self.TIME_OUT):
-            self.canvas.create_text(250, 380, text="Time out!",
-                    font=('Helvetica', 30), fill='red')                                        
+            self.canvas.create_rectangle(160, 360, 340, 400, fill='black', outline='red')            
+            self.canvas.create_text(250, 380, text="Time Out!",
+                    font=('Helvetica', 30), fill='red')                              
 
 
         self.tk.update_idletasks()
@@ -413,8 +464,9 @@ class Game:
                         image=self.bg, anchor='nw')
         self.sprites = []
         self.end_code = self.COMPLETED
+        self.canvas.create_rectangle(458, 4, 498, 40, fill='black', outline='white')
         self.timer_text = self.canvas.create_text(490, 10,
-            text=str(MAX_TIME_SECS), font=('Helvetica', 18), fill='white', anchor='ne')        
+            text=str(MAX_TIME_SECS), font=('Helvetica', 18), fill='white', anchor='ne')
 
         p1a =  PhotoImage(file='icons/platform1a.gif')
         p1b =  PhotoImage(file='icons/platform1b.gif')
@@ -425,7 +477,10 @@ class Game:
 
         MAX_RIGHT = 12
         #, game, photo_image1, photo_image2, x, y, width, height
-        platform10 = PlatformSprite(game=self, photo_image1=p3a, photo_image2=p3b, x = 45, y=60, width=32, height=10)
+        if (self.level == 1):
+            platform10 = PlatformSprite(game=self, photo_image1=p3a, photo_image2=p3b, x = 45, y=60, width=32, height=10, y_movement=10)
+            self.sprites.append(platform10)
+
         platform9 = PlatformSprite(self, p2a, p2b,  100, 120, 66, 10)                           
         platform8 = PlatformSprite(self, p3a, p3b,  200 , 160, 32, 10)
         platform7 = PlatformSprite(self, p2a, p2b, 260 , 200, 66, 10)
@@ -444,7 +499,6 @@ class Game:
         self.sprites.append(platform7)
         self.sprites.append(platform8)
         self.sprites.append(platform9)
-        self.sprites.append(platform10)
 
         if (self.level > 1):
             monster: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 20,    200, 30, 320, 30, 35)
@@ -466,16 +520,21 @@ class Game:
             monster5: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 260, 30, 160, 300, 30, 35)
             self.sprites.append(monster5)              
 
-
         img_open   = PhotoImage(file='icons/toilet-open.gif')
         img_closed = PhotoImage(file='icons/toilet-closed.gif')
 
-        if (self.level < 4):
-            toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=0, y=20,  y_movement=200, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        if (self.level > 1 and self.level < 4):
+            toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=2, y=40,  y_movement=200, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
             self.sprites.append(toilet) 
-        else:
-            toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=60, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        if (self.level >=4):
+            toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=80, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
             self.sprites.append(toilet)                                           
+
+        bin_open   = PhotoImage(file='icons/bin-open.gif')
+        bin_closed = PhotoImage(file='icons/bin-closed.gif')
+        bin = BinSprite(self, image_open=bin_open, image_closed=bin_closed, x=2, y=16,  y_movement=1, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(bin) 
+
 
         sf = StickFigureSprite(self)
         self.sprites.append(sf)
