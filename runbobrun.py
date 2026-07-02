@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import time
+from tkinter import PhotoImage
 from typing import Any
 
 MAX_TIME_SECS = 60
@@ -179,6 +180,24 @@ class StickFigureSprite(Sprite):
         self.coordinates.y2 = xy[1] + self.SPRITE_HEIGHT
         return self.coordinates
 
+    def checkSpriteAction(self, sprite):
+        if sprite.endgame:
+            if isinstance(sprite, BinSprite):
+                self.game.end_code = self.game.COMPLETED
+                ## move to next level
+            elif isinstance(sprite, MonsterSprite):
+                self.game.end_code = self.game.EATEN
+            self.game.running = False
+        else:
+            if isinstance(sprite, BananaSprite):
+                self.game.points = self.game.points  + 10
+                self.y = self.y + 5
+                self.game.canvas.delete(sprite.image)
+                try:
+                    self.game.sprites.remove(sprite)
+                except ValueError:
+                    pass
+
     def move(self):
         self.animate()
         if self.y < 0:
@@ -210,16 +229,12 @@ class StickFigureSprite(Sprite):
             if sprite == self:
                 continue
             sprite_co = sprite.coords()
+
             if top and self.y < 0 and collided_top(co, sprite_co):
                 self.y = -self.y
                 top = False
-                if sprite.endgame:
-                    if isinstance(sprite, ToiletSprite):
-                        self.game.end_code = self.game.COMPLETED
-                        ## move to next level
-                    elif isinstance(sprite, MonsterSprite):
-                        self.game.end_code = self.game.EATEN
-                    self.game.running = False
+                self.checkSpriteAction(sprite)
+
             if bottom and self.y > 0 and collided_bottom(self.y, 
                     co, sprite_co):
                 self.y = sprite_co.y1 - co.y2
@@ -227,43 +242,32 @@ class StickFigureSprite(Sprite):
                     self.y = 0
                 bottom = False
                 top = False
-                if sprite.endgame:
-                    if isinstance(sprite, ToiletSprite):
-                        self.game.end_code = self.game.COMPLETED
-                    elif isinstance(sprite, MonsterSprite):
-                        self.game.end_code = self.game.EATEN
-                    self.game.running = False
+                self.checkSpriteAction(sprite)
+                
             if bottom and falling and self.y == 0 \
                     and co.y2 < self.game.canvas_height \
                     and collided_bottom(1, co, sprite_co):
                 falling = False
                 if sprite.y_movement and sprite.y_delta < 0:
                     self.game.canvas.move(self.image, 0, sprite.y_delta)
+
             if left and self.x < 0 and collided_left(co, sprite_co):
                 self.x = 0
                 left = False
-                if sprite.endgame:
-                    if isinstance(sprite, ToiletSprite):
-                        self.game.end_code = self.game.COMPLETED
-                    elif isinstance(sprite, MonsterSprite):
-                        self.game.end_code = self.game.EATEN
-                    self.game.running = False
+                self.checkSpriteAction(sprite)
+
             if right and self.x > 0 and collided_right(co, sprite_co):
                 self.x = 0
                 right = False
-                if sprite.endgame:
-                    if isinstance(sprite, ToiletSprite):
-                        self.game.end_code = self.game.COMPLETED
-                    elif isinstance(sprite, MonsterSprite):
-                        self.game.end_code = self.game.EATEN
-                    self.game.running = False
+                self.checkSpriteAction(sprite)
 
         if falling and bottom and self.y == 0 \
                 and co.y2 < self.game.canvas_height:
             self.y = 4
+
         self.game.canvas.move(self.image, self.x, self.y)
 
-class ToiletSprite(Sprite):
+class PointSprite(Sprite):
     def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
         Sprite.__init__(self, game)
         self.last_time = time.time()
@@ -295,38 +299,17 @@ class ToiletSprite(Sprite):
         image = self.image_open if self.current_image == 1 else self.image_closed
         self.game.canvas.itemconfig(self.image, image=image)            
 
-class BinSprite(Sprite):
+class ToiletSprite(PointSprite):
+    pass    
+
+class BananaSprite(PointSprite):
+    pass
+
+class BinSprite(PointSprite):
     def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
-        Sprite.__init__(self, game)
-        self.last_time = time.time()
-        self.current_image = 1        
-        self.image_open = image_open
-        self.image_closed = image_closed
-        self.y_movement = y_movement
-        self.image = game.canvas.create_image(x, y, 
-                image=self.image_open, anchor='nw')
-        self.coordinates = Coords(x, y, x + (width / 2), y + height)
-        self.y_delta = 1
-        self.y_count = 0
-        self.endgame = True        
-
-    def move(self):
-        if self.y_count >= self.y_movement:
-            self.y_delta = -1
-        elif self.y_count <= 0:
-            self.y_delta = 1
-        self.y_count += self.y_delta
-        self.game.canvas.move(self.image, 0, self.y_delta)
-        self.coordinates.y1 += self.y_delta
-        self.coordinates.y2 += self.y_delta
-
-        # Alternate pics
-        if time.time() - self.last_time > 0.2:
-            self.last_time = time.time()
-            self.current_image = 2 if self.current_image == 1 else 1
-        image = self.image_open if self.current_image == 1 else self.image_closed
-        self.game.canvas.itemconfig(self.image, image=image)           
-
+        PointSprite.__init__(self, game, image_open, image_closed, x, y, y_movement, width, height)
+        self.endgame = True   
+         
 class MonsterSprite(Sprite):
     def __init__(self, game, photo_image, x, y, x_movement, y_movement, width, height):
         Sprite.__init__(self, game)
@@ -373,7 +356,8 @@ class Game:
     COMPLETED = 3
 
     def __init__(self):
-        self.level = 1
+        self.level = 0
+        self.points = 0
         self.tk = Tk()
         self.tk.title('Run Bob Run')
         self.tk.resizable(0, 0)
@@ -389,6 +373,7 @@ class Game:
         elapsed = time.time() - self.start_time
         remaining = max(0, MAX_TIME_SECS - int(elapsed))
         self.canvas.itemconfig(self.timer_text, text=str(remaining))
+        self.canvas.itemconfig(self.points_text, text=str(self.points))
         if elapsed > MAX_TIME_SECS:
             self.running = False
             self.end_code = self.TIME_OUT
@@ -397,10 +382,6 @@ class Game:
 
     def gameOver(self):
         for sprite in self.sprites:
-            if isinstance(sprite, ToiletSprite):
-                self.canvas.itemconfig(sprite.image,
-                        image=sprite.image_closed)
-
             if isinstance(sprite, StickFigureSprite):
                 if (self.end_code != self.COMPLETED):
                     self.canvas.itemconfig(sprite.image,
@@ -467,6 +448,9 @@ class Game:
         self.canvas.create_rectangle(458, 4, 498, 40, fill='black', outline='white')
         self.timer_text = self.canvas.create_text(490, 10,
             text=str(MAX_TIME_SECS), font=('Helvetica', 18), fill='white', anchor='ne')
+        self.canvas.create_rectangle(400, 4, 448, 40, fill='black', outline='white')
+        self.points_text = self.canvas.create_text(406, 10,
+            text=str(self.points), font=('Helvetica', 18), fill='white', anchor='nw')
 
         p1a =  PhotoImage(file='icons/platform1a.gif')
         p1b =  PhotoImage(file='icons/platform1b.gif')
@@ -477,7 +461,7 @@ class Game:
 
         MAX_RIGHT = 12
         #, game, photo_image1, photo_image2, x, y, width, height
-        if (self.level == 1):
+        if (self.level == 0):
             platform10 = PlatformSprite(game=self, photo_image1=p3a, photo_image2=p3b, x = 45, y=60, width=32, height=10, y_movement=10)
             self.sprites.append(platform10)
 
@@ -500,44 +484,55 @@ class Game:
         self.sprites.append(platform8)
         self.sprites.append(platform9)
 
-        if (self.level > 1):
-            monster: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 20,    200, 30, 320, 30, 35)
-            self.sprites.append(monster)
+        #self, game, photo_image, x, y, x_movement, y_movement, width, height
+        monster: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 20,    200, 300, 320, 30, 35)
+        self.sprites.append(monster)
 
-        if (self.level > 2):
+        if (self.level > 1):
             monster2: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 30,   80, 90, 380, 30, 35)
             self.sprites.append(monster2)        
 
-        if (self.level > 3):
+        if (self.level > 2):
             monster3: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 80,  200, 180, 300, 30, 35)
             self.sprites.append(monster3)     
 
-        if (self.level > 4):
+        if (self.level > 3):
             monster4: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 160, 240, 120, 320, 30, 35)
             self.sprites.append(monster4)  
 
-        if (self.level > 5):
+        if (self.level > 4):
             monster5: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 260, 30, 160, 300, 30, 35)
-            self.sprites.append(monster5)              
+            self.sprites.append(monster5)             
 
         img_open   = PhotoImage(file='icons/toilet-open.gif')
         img_closed = PhotoImage(file='icons/toilet-closed.gif')
 
-        if (self.level > 1 and self.level < 4):
+        if (self.level > 0):
             toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=2, y=40,  y_movement=200, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
             self.sprites.append(toilet) 
         if (self.level >=4):
             toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=80, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-            self.sprites.append(toilet)                                           
+            self.sprites.append(toilet)     
+
+        bananaImg1: PhotoImage   = PhotoImage(file='icons/banana1.gif')
+        bananaImg2: PhotoImage   = PhotoImage(file='icons/banana1.gif')
+        banana1 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=35, y=410,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana1)    
+        banana2 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=400, y=150,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana2) 
+        banana3 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=210, y=100,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana3) 
+        banana4 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=90, y=50,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana4)     
 
         bin_open   = PhotoImage(file='icons/bin-open.gif')
         bin_closed = PhotoImage(file='icons/bin-closed.gif')
-        bin = BinSprite(self, image_open=bin_open, image_closed=bin_closed, x=2, y=16,  y_movement=1, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        bin = BinSprite(self, image_open=bin_open, image_closed=bin_closed, x=2, y=20,  y_movement=1, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(bin) 
-
 
         sf = StickFigureSprite(self)
         self.sprites.append(sf)
+
         self.mainloop()
 
 g = Game()
