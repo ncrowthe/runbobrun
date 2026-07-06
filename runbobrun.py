@@ -134,11 +134,9 @@ class StickFigureSprite(Sprite):
         game.canvas.bind_all('<space>', self.jump)
 
     def turn_left(self, evt):
-        if self.y == 0:
             self.x = -2
 
     def turn_right(self, evt):
-        if self.y == 0:
             self.x = 2
 
     def jump(self, evt):
@@ -188,8 +186,8 @@ class StickFigureSprite(Sprite):
                 self.game.end_code = self.game.EATEN
             self.game.running = False
         else:
-            if isinstance(sprite, BananaSprite):
-                self.game.points = self.game.points  + 10
+            if isinstance(sprite, PointSprite):
+                self.game.points += sprite.points
                 self.y = self.y + 5
                 self.game.canvas.delete(sprite.image)
                 try:
@@ -202,7 +200,7 @@ class StickFigureSprite(Sprite):
         if self.y < 0:
             self.jump_count += 1
             if self.jump_count > self.jump_max:
-                self.y = 4
+                self.y = 2
         if self.y > 0:
             self.jump_count -= 1
         co = self.coords()
@@ -229,7 +227,7 @@ class StickFigureSprite(Sprite):
                 continue
             sprite_co = sprite.coords()
 
-            if (isinstance(sprite, BananaSprite) 
+            if (isinstance(sprite, PointSprite) 
             and top and self.y < 0 and collided_top(co, sprite_co)):
                 self.y = -self.y
                 top = False
@@ -280,6 +278,7 @@ class PointSprite(Sprite):
         self.coordinates = Coords(x, y, x + (width / 2), y + height)
         self.y_delta = 1
         self.y_count = 0
+        self.points = 10
         self.endgame = False        
 
     def move(self):
@@ -303,12 +302,25 @@ class ToiletSprite(PointSprite):
     pass    
 
 class BananaSprite(PointSprite):
-    pass
+    def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
+        PointSprite.__init__(self, game, image_open, image_closed, x, y, y_movement, width, height)
+        self.points = 40       
+
+class SodaSprite(PointSprite):
+    def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
+        PointSprite.__init__(self, game, image_open, image_closed, x, y, y_movement, width, height)
+        self.points = 20       
 
 class BinSprite(PointSprite):
     def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
         PointSprite.__init__(self, game, image_open, image_closed, x, y, y_movement, width, height)
+        self.points = 50  
         self.endgame = True   
+
+class PooSprite(PointSprite):
+    def __init__(self, game, image_open, image_closed, x, y, y_movement, width, height):
+        PointSprite.__init__(self, game, image_open, image_closed, x, y, y_movement, width, height)
+        self.points = -20           
          
 class MonsterSprite(Sprite):
     def __init__(self, game, photo_image, x, y, x_movement, y_movement, width, height):
@@ -326,6 +338,7 @@ class MonsterSprite(Sprite):
         self.y_delta = 1
         self.y_count = 0        
 
+        self.points = -100
         self.endgame = True
 
     def move(self):
@@ -412,7 +425,7 @@ class Game:
 
     def mainloop(self):
         while True:
-            if self.running == True:
+            if self.running:
                 self.play()
             else:
                 self.gameOver()
@@ -443,8 +456,7 @@ class Game:
             for y in range(0, 5):
                 self.canvas.create_image(x * w, y * h, 
                         image=self.bg, anchor='nw')
-        self.sprites = []
-        self.end_code = self.COMPLETED
+
         self.canvas.create_rectangle(458, 4, 498, 40, fill='black', outline='white')
         self.timer_text = self.canvas.create_text(490, 10,
             text=str(MAX_TIME_SECS), font=('Helvetica', 18), fill='white', anchor='ne')
@@ -516,25 +528,36 @@ class Game:
 
         bananaImg1: PhotoImage   = PhotoImage(file='icons/banana1.gif')
         bananaImg2: PhotoImage   = PhotoImage(file='icons/banana1.gif')
-        banana1 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        banana1 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 200),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(banana1)
-        banana2 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        banana2 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 200),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(banana2)
-        banana3 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        banana3 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 200),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(banana3)
-        banana4 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        banana4 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 200),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(banana4)     
 
         sodaImg1: PhotoImage   = PhotoImage(file='icons/soda-can.gif')
         sodaImg2: PhotoImage   = PhotoImage(file='icons/soda-can.gif')
-        soda1 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        soda1: SodaSprite = SodaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(240, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(soda1)
-        soda2 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        soda2 = SodaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(240, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(soda2)
-        soda3 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        soda3 = SodaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(240, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(soda3)
-        soda4 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-        self.sprites.append(soda4)         
+        soda4 = SodaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(240, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(soda4)      
+
+        pooImg1: PhotoImage   = PhotoImage(file='icons/poo.gif')
+        pooImg2: PhotoImage   = PhotoImage(file='icons/poo.gif')
+        poo1 = PooSprite(self, image_open=pooImg1, image_closed=pooImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(poo1)
+        poo2 = PooSprite(self, image_open=pooImg1, image_closed=pooImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(poo2)
+        poo3 = PooSprite(self, image_open=pooImg1, image_closed=pooImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(poo3)
+        poo4 = PooSprite(self, image_open=pooImg1, image_closed=pooImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(poo4)           
 
         bin_open   = PhotoImage(file='icons/bin-open.gif')
         bin_closed = PhotoImage(file='icons/bin-closed.gif')
