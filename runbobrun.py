@@ -246,8 +246,10 @@ class StickFigureSprite(Sprite):
                     and co.y2 < self.game.canvas_height \
                     and collided_bottom(1, co, sprite_co):
                 falling = False
-                if sprite.y_movement and sprite.y_delta < 0:
-                    self.game.canvas.move(self.image, 0, sprite.y_delta)
+                # Move with platforms and ToiletSprite
+                if hasattr(sprite, 'y_movement') and sprite.y_movement:
+                    if hasattr(sprite, 'y_delta'):
+                        self.game.canvas.move(self.image, 0, sprite.y_delta)
 
             if left and self.x < 0 and collided_left(co, sprite_co):
                 self.x = 0
@@ -298,7 +300,7 @@ class PointSprite(Sprite):
         image = self.image_open if self.current_image == 1 else self.image_closed
         self.game.canvas.itemconfig(self.image, image=image)            
 
-class ToiletSprite(PointSprite):
+class ToiletSprite(PlatformSprite):
     pass    
 
 class BananaSprite(PointSprite):
@@ -484,8 +486,13 @@ class Game:
         platform5 = PlatformSprite(self, p1a, p1b, 150 , 300, 100, 10)   
         platform4 = PlatformSprite(self, p3a, p3b, 300 , 350, 32, 10)  
         platform3 = PlatformSprite(self, p2a, p2b, 380 , 400, 66, 10)                               
-        platform2 = PlatformSprite(self, p1a, p1b, 250 , 440, 100, 10)                                                
-        platform1 = PlatformSprite(self, p2a, p2b, 180 , 480, 66, 10)                                                                       
+        platform2 = PlatformSprite(self, p1a, p1b, 250 , 440, 100, 10)  
+
+        if (self.level < 3):                                              
+            platform1 = PlatformSprite(self, p2a, p2b, 180 , 480, 66, 10)
+        else:
+            platform1 = PlatformSprite(self, p2a, p2b, 180 , 480, 66, 10, 20)
+                                                                                 
         self.sprites.append(platform1)
         self.sprites.append(platform2)
         self.sprites.append(platform3)
@@ -495,6 +502,15 @@ class Game:
         self.sprites.append(platform7)
         self.sprites.append(platform8)
         self.sprites.append(platform9)
+
+        img_open   = PhotoImage(file='icons/toilet-open.gif')
+        img_closed = PhotoImage(file='icons/toilet-closed.gif')
+        if (self.level == 1):
+            toilet = ToiletSprite(self, photo_image1=img_open, photo_image2=img_closed, x=2, y=0,  width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT, y_movement=400)
+            self.sprites.append(toilet) 
+        else if (self.level > 1):
+            toilet = ToiletSprite(self, photo_image1=img_open, photo_image2=img_closed, x=300, y=0,  width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT, y_movement=400)
+            self.sprites.append(toilet)            
 
         #self, game, photo_image, x, y, x_movement, y_movement, width, height
         monster: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 20,    200, 300, 320, 30, 35)
@@ -514,17 +530,7 @@ class Game:
 
         if (self.level > 4):
             monster5: MonsterSprite = MonsterSprite(self, PhotoImage(file='icons/monster1a.gif'), 260, 30, 160, 300, 30, 35)
-            self.sprites.append(monster5)             
-
-        img_open   = PhotoImage(file='icons/toilet-open.gif')
-        img_closed = PhotoImage(file='icons/toilet-closed.gif')
-
-        if (self.level > 0):
-            toilet = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=2, y=40,  y_movement=200, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-            self.sprites.append(toilet) 
-        if (self.level >=4):
-            toilet  = ToiletSprite(self, image_open=img_open, image_closed=img_closed, x=300, y=0,  y_movement=80, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-            self.sprites.append(toilet)     
+            self.sprites.append(monster5)              
 
         bananaImg1: PhotoImage   = PhotoImage(file='icons/banana1.gif')
         bananaImg2: PhotoImage   = PhotoImage(file='icons/banana1.gif')
