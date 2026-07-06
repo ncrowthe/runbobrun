@@ -44,11 +44,8 @@ def collided_right(co1, co2):
             return True
     return False
 
-def collided_top(co1, co2):
-    if within_x(co1, co2):
-        if co1.y1 >= co2.y1 and co1.y1 <= co2.y2:
-            return False
-    return False
+def collided_top(co1: Coords, co2: Coords) -> bool:
+    return within_x(co1, co2) and co2.y1 <= co1.y1 <= co2.y2    
 
 def collided_bottom(y, co1, co2):
     if within_x(co1, co2):
@@ -129,6 +126,7 @@ class StickFigureSprite(Sprite):
         self.current_image = 0
         self.current_image_add = 1
         self.jump_count = 0
+        self.jump_max = 20
         self.last_time = time.time()
         self.coordinates = Coords()
         game.canvas.bind_all('<KeyPress-Left>', self.turn_left)
@@ -145,6 +143,7 @@ class StickFigureSprite(Sprite):
 
     def jump(self, evt):
         if self.y == 0:
+            self.jump_max = 40 if evt.state & 0x4 else 20
             self.y = -4
             self.jump_count = 0
 
@@ -202,7 +201,7 @@ class StickFigureSprite(Sprite):
         self.animate()
         if self.y < 0:
             self.jump_count += 1
-            if self.jump_count > 20:
+            if self.jump_count > self.jump_max:
                 self.y = 4
         if self.y > 0:
             self.jump_count -= 1
@@ -230,7 +229,8 @@ class StickFigureSprite(Sprite):
                 continue
             sprite_co = sprite.coords()
 
-            if top and self.y < 0 and collided_top(co, sprite_co):
+            if (isinstance(sprite, BananaSprite) 
+            and top and self.y < 0 and collided_top(co, sprite_co)):
                 self.y = -self.y
                 top = False
                 self.checkSpriteAction(sprite)
@@ -516,14 +516,25 @@ class Game:
 
         bananaImg1: PhotoImage   = PhotoImage(file='icons/banana1.gif')
         bananaImg2: PhotoImage   = PhotoImage(file='icons/banana1.gif')
-        banana1 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=35, y=410,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-        self.sprites.append(banana1)    
-        banana2 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=400, y=150,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-        self.sprites.append(banana2) 
-        banana3 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=210, y=100,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-        self.sprites.append(banana3) 
-        banana4 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=90, y=50,  y_movement=2, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        banana1 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana1)
+        banana2 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana2)
+        banana3 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(banana3)
+        banana4 = BananaSprite(self, image_open=bananaImg1, image_closed=bananaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
         self.sprites.append(banana4)     
+
+        sodaImg1: PhotoImage   = PhotoImage(file='icons/soda-can.gif')
+        sodaImg2: PhotoImage   = PhotoImage(file='icons/soda-can.gif')
+        soda1 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(soda1)
+        soda2 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(soda2)
+        soda3 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(soda3)
+        soda4 = BananaSprite(self, image_open=sodaImg1, image_closed=sodaImg2, x=random.randint(0, 460), y=random.randint(0, 460),  y_movement=4, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+        self.sprites.append(soda4)         
 
         bin_open   = PhotoImage(file='icons/bin-open.gif')
         bin_closed = PhotoImage(file='icons/bin-closed.gif')
