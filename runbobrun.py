@@ -508,7 +508,7 @@ class Game:
         if (self.level == 1):
             toilet = ToiletSprite(self, photo_image1=img_open, photo_image2=img_closed, x=2, y=0,  width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT, y_movement=400)
             self.sprites.append(toilet) 
-        else if (self.level > 1):
+        if (self.level > 1):
             toilet = ToiletSprite(self, photo_image1=img_open, photo_image2=img_closed, x=300, y=0,  width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT, y_movement=400)
             self.sprites.append(toilet)            
 
