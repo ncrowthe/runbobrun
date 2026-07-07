@@ -567,8 +567,13 @@ class Game:
 
         bin_open   = PhotoImage(file='icons/bin-open.gif')
         bin_closed = PhotoImage(file='icons/bin-closed.gif')
-        bin = BinSprite(self, image_open=bin_open, image_closed=bin_closed, x=2, y=20,  y_movement=1, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
-        self.sprites.append(bin) 
+
+        if (self.level < 2):
+            bin = BinSprite(self, image_open=bin_open, image_closed=bin_closed, x=2, y=20,  y_movement=1, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+            self.sprites.append(bin) 
+        else:
+            bin = BinSprite(self, image_open=bin_open, image_closed=bin_closed, x=250, y=20,  y_movement=1, width=Sprite.SPRITE_WIDTH, height=Sprite.SPRITE_HEIGHT)
+            self.sprites.append(bin)         
 
         sf = StickFigureSprite(self)
         self.sprites.append(sf)
